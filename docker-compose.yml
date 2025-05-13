@@ -1,0 +1,23 @@
+# version: "3.9"
+
+services:
+  fe:
+    image: node:22.9.0
+    environment:
+      - HOME=/tmp
+      - HOST=0.0.0.0
+      - PORT=3000
+    volumes:
+      - ./web-platform:/app
+    working_dir: /app
+    ports: ['3000:3000']
+    command: ['npm', 'run', 'dev', '--', '--port', '3000']
+  be:
+    build: ./service-platform
+    volumes:
+      - './service-platform:/app'
+    ports: [ '8000:8000' ]
+    working_dir: /app
+    entrypoint: poetry run
+    command: [ 'fastapi', 'dev', 'main.py', "--host", "0.0.0.0", "--port", "8000" ]
+  
