@@ -1,237 +1,220 @@
 <template lang="pug">
-.app-layout
-  // Sidebar
-  .sidebar
-    .logo
-      RouterLink(to="/") HarmonySeeker
-    
-    nav.nav-menu
-      RouterLink.nav-item.active(to="/songchord")
-        span.nav-icon 🎵
-        span.nav-text Song Chord
-      RouterLink.nav-item(to="/stem-splitter")
-        span.nav-icon ✂️
-        span.nav-text Stem Splitter
-    
-  // Main Content
-  .main-content
-    main.page-content
-      RouterView
+  .header-navigation
+    .nav-container
+      // Logo and brand name (left side)
+      .brand-section
+        .logo
+          v-icon(color="primary" size="32") mdi-music-note-outline
+        .brand-name HarmonySeeker
+          
+      // Navigation items (right side)
+      .nav-items
+        .nav-item(
+          v-for="(item, index) in navItems"
+          :key="index"
+          :class="{ active: item.active, disabled: item.disabled }"
+          @click="selectItem(index)"
+        )
+          .item-text {{ item.text }}
 </template>
 
-<script setup>
-import { RouterLink, RouterView } from 'vue-router'
+<script setup lang="ts">
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+const navItems = ref([
+  { 
+    text: 'Home',
+    to: '/',
+    active: true,
+    disabled: false
+  },
+  { 
+    text: 'Song Chord',
+    to: '/songchord',
+    active: false,
+    disabled: false
+  },
+  { 
+    text: 'Voice Removal',
+    to: '/voiceseparator',
+    active: false,
+    disabled: false
+  }
+])
+
+const selectItem = (index: number) => {
+  navItems.value.forEach((item, i) => {
+    item.active = i === index
+  })
+  const to = navItems.value[index].to
+  if (to && !navItems.value[index].disabled) {
+    router.push(to)
+  }
+}
+
+const handleLogin = () => {
+  // Handle login logic here
+  console.log('Login clicked')
+  // router.push('/login')
+}
 </script>
 
-<style scoped>
-.app-layout {
-  display: flex;
-  min-height: 100vh;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
-
-.sidebar {
-  width: 260px;
-  background-color: white;
-  border-right: 1px solid #e2e8f0;
-  display: flex;
-  flex-direction: column;
-  padding: 1.5rem 0;
-}
-
-.logo {
-  margin-bottom: 2rem;
-  padding-left: 0.25rem;
-}
-
-.logo-img {
-  height: 30px;
-}
-
-.nav-menu {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  padding-left: 0;
-}
-
-.nav-item {
-  display: flex;
-  align-items: center;
-  padding: 0.75rem 0.5rem;
-  border-radius: 0.375rem;
-  color: #4a5568;
-  text-decoration: none;
-  transition: background-color 0.2s ease;
-}
-
-.nav-item:hover {
-  background-color: #f7fafc;
-  color: #2d3748;
-}
-
-.nav-item.active, .nav-item.router-link-active {
-  background-color: #ebf8ff;
-  color: #3182ce;
-}
-
-.nav-icon {
-  margin-right: 0.75rem;
-  font-size: 1.25rem;
-}
-
-.nav-text {
-  font-weight: 500;
-}
-
-.sidebar-footer {
-  margin-top: 2rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  padding: 0 0.5rem;
-}
-
-.download-button {
-  background-color: #00e676;
-  color: black;
-  font-weight: 600;
-  padding: 0.75rem 1rem;
-  border-radius: 0.375rem;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.download-button:hover {
-  background-color: #00c853;
-}
-
-.login-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.75rem 1rem;
-  border-radius: 0.375rem;
-  border: 1px solid #e2e8f0;
-  background-color: white;
-  color: #4a5568;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.login-button:hover {
-  background-color: #f7fafc;
-}
-
-.login-icon {
-  margin-right: 0.5rem;
-}
-
-.main-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  background-color: #f8fafc;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 2rem;
-  background-color: white;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.access-button {
-  background-color: #3182ce;
-  color: white;
-  font-weight: 600;
-  padding: 0.5rem 1rem;
-  border-radius: 0.375rem;
-  border: none;
-  cursor: pointer;
-}
-
-.tools-button {
-  background-color: white;
-  color: #4a5568;
-  font-weight: 600;
-  padding: 0.5rem 1rem;
-  border-radius: 0.375rem;
-  border: 1px solid #e2e8f0;
-  cursor: pointer;
-}
-
-.install-button {
-  background-color: #f7fafc;
-  color: #4a5568;
-  font-weight: 600;
-  padding: 0.5rem 1rem;
-  border-radius: 0.375rem;
-  border: 1px solid #e2e8f0;
-  cursor: pointer;
-}
-
-.app-download-button {
-  background-color: #00e676;
-  color: black;
-  font-weight: 600;
-  padding: 0.5rem 1rem;
-  border-radius: 0.375rem;
-  border: none;
-  cursor: pointer;
-}
-
-.page-content {
-  flex: 1;
-  padding: 2rem;
-  overflow-y: auto;
-}
-
-@media (max-width: 1024px) {
-  .header-right {
-    gap: 0.5rem;
+<style lang="scss" scoped>
+.header-navigation {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 72px;
+  background-color: #ffffff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  
+  .nav-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
   }
   
-  .install-button {
-    display: none;
+  // Brand section (left side)
+  .brand-section {
+    display: flex;
+    align-items: center;
+    
+    .logo {
+      margin-right: 12px;
+    }
+    
+    .brand-name {
+      font-size: 22px;
+      font-weight: 700;
+      color: #333;
+      background: linear-gradient(135deg, #9c27b0 0%, #673ab7 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: 0.5px;
+    }
+  }
+  
+  // Navigation items (right side)
+  .nav-items {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    
+    .nav-item {
+      position: relative;
+      padding: 8px 16px;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+      font-weight: 500;
+      
+      &:hover:not(.active):not(.login-button) {
+        background-color: #f5f5f5;
+      }
+      
+      &.active {
+        position: relative;
+        color: #9c27b0;
+        font-weight: 600;
+        
+        &::after {
+          content: '';
+          position: absolute;
+          bottom: -4px;
+          left: 0;
+          width: 100%;
+          height: 3px;
+          background: linear-gradient(135deg, #9c27b0 0%, #673ab7 100%);
+          border-radius: 8px;
+        }
+      }
+      
+      &.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      
+      .item-text {
+        font-size: 16px;
+        color: inherit;
+      }
+      
+      &.login-button {
+        background-color: #9c27b0;
+        color: white;
+        border-radius: 8px;
+        padding: 8px 18px;
+        display: flex;
+        align-items: center;
+        margin-left: 16px;
+        
+        &:hover {
+          background-color: #7b1fa2;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 8px rgba(156, 39, 176, 0.3);
+        }
+        
+        .item-text {
+          color: white;
+        }
+      }
+    }
   }
 }
 
+// Responsive design
 @media (max-width: 768px) {
-  .app-layout {
-    flex-direction: column;
+  .header-navigation {
+    height: auto;
+    padding: 12px 0;
+    
+    .nav-container {
+      flex-direction: column;
+      gap: 12px;
+      padding: 0 16px;
+    }
+    
+    .nav-items {
+      width: 100%;
+      justify-content: space-between;
+      
+      .nav-item {
+        padding: 6px 10px;
+        font-size: 14px;
+        
+        &.login-button {
+          margin-left: 0;
+        }
+      }
+    }
   }
-  
-  .sidebar {
-    width: 100%;
-    border-right: none;
-    border-bottom: 1px solid #e2e8f0;
-    padding: 1rem;
-  }
-  
-  .nav-menu {
-    flex-direction: row;
+}
+
+// For extra small screens
+@media (max-width: 480px) {
+  .header-navigation .nav-items {
     flex-wrap: wrap;
-    gap: 0.5rem;
+    justify-content: center;
+    gap: 8px;
+    
+    .nav-item {
+      .item-text {
+        font-size: 14px;
+      }
+    }
   }
   
-  .nav-item {
-    width: calc(50% - 0.5rem);
-  }
-  
-  .header-right {
-    display: none;
+  .brand-section .brand-name {
+    font-size: 18px;
   }
 }
 </style>

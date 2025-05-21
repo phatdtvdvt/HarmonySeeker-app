@@ -5,6 +5,7 @@ import httpx
 from fastapi import APIRouter, File, UploadFile
 from fastapi.responses import JSONResponse
 import soundfile as sf
+from config.setting import AI_BASE_URL
 
 router = APIRouter()
 
@@ -15,11 +16,7 @@ async def predict_chord(file: UploadFile = File(...)):
     Receive an audio file, forward it to the AI server, then group the returned chord sequence
     into segments with the same consecutive chords, each with start_time and end_time.
     """
-    AI_BASE_URL = os.getenv("AI_BASE_URL", "http://localhost:8000")
     PREDICT_CHORD_URL = f"{AI_BASE_URL}/ai/predict-chord"
-    SAMPLE_RATE = int(os.getenv("SAMPLE_RATE", 22050))
-    HOP_LENGTH = int(os.getenv("HOP_LENGTH", 512))
-    N_FRAMES = int(os.getenv("N_FRAMES", 1000))
 
     tmp_path = None
 

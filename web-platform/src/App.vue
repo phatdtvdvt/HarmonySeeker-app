@@ -1,23 +1,21 @@
-<template>
-    <Menu />
+<template lang="pug">
+  v-app
+    v-main
+        Menu
+        .page-content
+        router-view.mt-10
 </template>
 
-<script setup>
+<script setup lang="ts">
 import Menu from '@/components/Menu/index.vue'
 </script>
 
-<style scoped>
-nav {
-  padding: 20px;
-  text-align: center;
-}
-nav a {
-  font-weight: bold;
-  color: #2c3e50;
-  text-decoration: none;
-  margin: 0 10px;
-}
-nav a.router-link-exact-active {
-  color: #42b983;
-}
+<style lang="sass" scoped>
+.app-layout
+  display: flex
+  min-height: 100vh
+
+.page-content
+  flex: 1
+  padding: 5px
 </style>
