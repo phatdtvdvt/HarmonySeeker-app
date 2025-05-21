@@ -1,2 +1,9 @@
 .env
 FE/node_modules
+*.pyc
+*.pyo
+*.pyd
+*.pyw
+*.pyz
+*.pywz
+*.pyzw
