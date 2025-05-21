@@ -1,9 +1,9 @@
 [project]
-name = "app"
+name = "HarmonySeeker"
 version = "0.1.0"
-description = ""
+description = "Harmony Seeker web app"
 authors = [
-    {name = "Your Name",email = "you@example.com"}
+    {name = "Harmony Seeker",email = "HarmonySeeker@gmail.com"}
 ]
 readme = "README.md"
 requires-python = ">=3.13"
