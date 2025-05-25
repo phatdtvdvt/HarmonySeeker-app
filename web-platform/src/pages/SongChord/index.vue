@@ -6,21 +6,17 @@
         p.text-body-1.text-grey-lighten-2.mt-2.font-weight-bold
           | Instantly detect the key and chords of your song using AI.
           | Upload your audio to reveal its harmonic structure in seconds.
-          
       div.app-content.pa-6
         div(v-if="waveReady").text-center.mb-8.key-display
           h2.text-subtitle-1.font-weight-medium.text-grey-darken-2 MAIN CHORD
           h1.text-h2.font-weight-bold.gradient-text(v-if="!loadingKey") {{ detectedKey || '...' }}
           v-progress-circular(indeterminate color="primary" v-if="loadingKey")
-          
         div.mt-4.text-center(v-if="currentChord")
           v-chip(color="primary" variant="elevated" size="large" class="chord-chip px-6 py-2")
             v-icon(start class="mr-2") mdi-music-note
             span.text-subtitle-1 Current Chord: {{ currentChord }}
-            
         div.wave-container.mt-6.rounded-lg.pa-4
           span Duration: {{ formatTime(audioDuration) }}
-
           div.d-flex.align-center.justify-space-between
             template(v-if="waveReady")
               v-btn(icon size="large" color="primary" variant="tonal" class="control-btn mr-2" @click="togglePlay")
@@ -29,14 +25,13 @@
             template(v-if="waveReady")
               v-btn(icon size="large" color="error" variant="tonal" class="control-btn ml-2" @click="onDeleteAudio")
                 v-icon(size="26") mdi-delete
-                
         div.upload-container.mt-8.pa-6.rounded-lg(v-if="!waveReady")
           input(type="file" accept="audio/*" @change="onFileChange" hidden ref="fileInput")
           div.d-flex.flex-column.align-center
             v-icon(size="64" color="primary") mdi-cloud-upload
             span.font-weight-medium.text-h6.mt-4 Choose a file or drag it here
             span.text-caption.text-grey-darken-1.mt-1 Supported formats: .mp3, .wav, .flac
-            v-btn.upload-btn.mt-6(size="large" color="primary" @click="selectFile" prepend-icon="mdi-music-note") 
+            v-btn.upload-btn.mt-6(size="large" color="primary" @click="selectFile" prepend-icon="mdi-music-note")
               | Upload Audio
 </template>
   
@@ -73,6 +68,8 @@ const selectFile = () => {
 }
 
 const onFileChange = async (e: Event) => {
+  // Always reset the input value so the same file can be uploaded again
+  if (fileInput.value) fileInput.value.value = ''
   const target = e.target as HTMLInputElement
   const file = target.files?.[0]
   console.log(file)
@@ -104,7 +101,6 @@ const onFileChange = async (e: Event) => {
         barGap: 3,
         barRadius: 4,
         height: 70,
-        responsive: true,
         cursorColor: '#333',
         cursorWidth: 2
       })
@@ -152,98 +148,166 @@ const togglePlay = () => {
 .music-app-card {
   overflow: hidden;
   border: none;
+  /* background-color: #ffffff; */
+  animation: fadeIn 0.7s ease-out;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .app-header {
   background: linear-gradient(135deg, #775CF0 0%, #4A3AFF 100%);
+  color: white;
+  padding: 48px;
+  border-radius: 24px 24px 0 0;
   position: relative;
+  overflow: hidden;
 }
 
 .app-header::after {
   content: '';
   position: absolute;
-  bottom: -20px;
-  right: -20px;
+  bottom: -30px;
+  right: -30px;
   width: 200px;
   height: 200px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.07);
   border-radius: 50%;
   z-index: 0;
 }
 
+.app-header h1,
+.app-header p {
+  z-index: 1;
+  position: relative;
+}
+
+.app-header h1 {
+  font-size: 2.8rem;
+  font-family: 'Comic Neue', 'Comic Sans MS', cursive, sans-serif !important;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.app-header p {
+  font-size: 1.35rem;
+  font-family: 'Comic Neue', 'Comic Sans MS', cursive, sans-serif !important;
+  font-weight: 600;
+  margin-top: 12px;
+}
+
+.key-display {
+  padding: 24px 0;
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #775CF0, #4A3AFF);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-size: 4rem;
+  font-weight: bold;
+}
+
 .wave-container {
-  background-color: #f9f9fc;
-  border: 1px solid #eaeaea;
+  background-color: #fafbff;
+  border: 1px solid #e0e6f0;
   border-radius: 16px;
+  padding: 24px;
+  transition: box-shadow 0.3s;
+}
+
+.wave-container:hover {
+  box-shadow: 0 10px 20px rgba(74, 58, 255, 0.1);
+}
+
+.wave-container span {
+  font-size: 1.25rem;
+  font-family: 'Comic Neue', 'Comic Sans MS', cursive, sans-serif !important;
+  font-weight: 600;
 }
 
 .upload-container {
-  border: 2px dashed #d0d0f0;
+  border-width: 3px !important;
+  border-style: dashed !important;
+  border-color: #775CF0 !important;
   background-color: #f9f9fc;
-  transition: all 0.3s ease;
+  text-align: center;
+  border-radius: 16px;
+  transition: 0.3s;
 }
 
 .upload-container:hover {
   border-color: #775CF0;
-  background-color: #f0f0ff;
-}
-
-.chord-chip {
-  font-weight: 600;
-  background: linear-gradient(135deg, #775CF0 0%, #4A3AFF 100%);
-  color: white;
-  box-shadow: 0 4px 10px rgba(74, 58, 255, 0.2);
-}
-
-.control-btn {
-  transition: all 0.2s ease;
-}
-
-.control-btn:hover {
-  transform: scale(1.1);
-}
-
-.gradient-text {
-  background: linear-gradient(135deg, #775CF0 0%, #4A3AFF 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  font-size: 3.5rem;
-}
-
-.key-display {
-  padding: 20px;
-  position: relative;
+  background-color: #f3f2ff;
+  box-shadow: 0 10px 24px rgba(124, 58, 237, 0.12);
 }
 
 .upload-btn {
   min-width: 200px;
   border-radius: 12px;
-  padding: 12px 24px;
+  padding: 14px 28px;
   font-weight: 600;
-  letter-spacing: 0.5px;
   text-transform: none;
-  box-shadow: 0 4px 12px rgba(74, 58, 255, 0.25);
-  transition: all 0.3s ease;
+  box-shadow: 0 6px 16px rgba(74, 58, 255, 0.25);
+  transition: 0.3s;
 }
 
 .upload-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(74, 58, 255, 0.3);
+  box-shadow: 0 8px 20px rgba(74, 58, 255, 0.35);
 }
 
-/* For small screens */
-@media (max-width: 600px) {
+.chord-chip {
+  font-weight: 600;
+  font-size: 1.1rem;
+  background: linear-gradient(135deg, #775CF0, #4A3AFF);
+  color: white;
+  box-shadow: 0 4px 12px rgba(74, 58, 255, 0.15);
+}
+
+.control-btn {
+  transition: transform 0.2s;
+}
+
+.control-btn:hover {
+  transform: scale(1.15);
+}
+
+@media (max-width: 768px) {
   .app-header {
-    padding: 16px !important;
+    padding: 24px;
   }
-  
-  .app-header h1 {
-    font-size: 1.8rem !important;
-  }
-  
+
   .gradient-text {
-    font-size: 2.5rem;
+    font-size: 2.8rem;
   }
+
+  .upload-btn {
+    padding: 12px 20px;
+    min-width: 160px;
+  }
+}
+
+.upload-container span.font-weight-medium.text-h6.mt-4 {
+  font-size: 1.4rem;
+  font-family: 'Comic Neue', 'Comic Sans MS', cursive, sans-serif !important;
+  font-weight: 700;
+  padding: 8px 0;
+}
+
+.upload-container span.text-caption.text-grey-darken-1.mt-1 {
+  font-size: 1.1rem;
+  font-family: 'Comic Neue', 'Comic Sans MS', cursive, sans-serif !important;
+  font-weight: 500;
+  padding-bottom: 8px;
 }
 </style>
