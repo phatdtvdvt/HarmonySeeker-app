@@ -16,6 +16,7 @@ dependencies = [
     "python-dotenv>=1.0.1,<2.0.0",
     "gunicorn>=21.2.0,<22.0.0"
 ]
+package-mode = false
 
 [tool.poetry]
 name = "harmony-seeker-service"
