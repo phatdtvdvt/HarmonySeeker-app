@@ -23,4 +23,7 @@ jobs:
 
       - name: Run all tests
         working-directory: ./service-platform
+        env:
+          TESTING: "true"
+          AI_BASE_URL: "http://mock-ai-server.test"
         run: pytest
