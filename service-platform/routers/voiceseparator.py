@@ -1,9 +1,10 @@
 import os
 import tempfile
+import base64
 
 import httpx
 from fastapi import APIRouter, File, UploadFile
-from fastapi.responses import JSONResponse, FileResponse
+from fastapi.responses import JSONResponse
 from config.setting import AI_BASE_URL
 
 router = APIRouter()
@@ -13,13 +14,11 @@ router = APIRouter()
 async def separate_voice(file: UploadFile = File(...)):
     """
     Receive an audio file, forward it to the AI server for voice separation,
-    and return both the vocals and instrumental tracks.
+    and return both the vocals and instrumental tracks as base64 encoded strings.
     """
     SEPARATE_VOICE_URL = f"{AI_BASE_URL}/ai/separate-voice"
 
     tmp_path = None
-    vocals_path = None
-    instrumental_path = None
 
     try:
         # Save uploaded file temporarily
@@ -42,34 +41,28 @@ async def separate_voice(file: UploadFile = File(...)):
                 status_code=500,
             )
 
-        # Save the separated audio files temporarily
-        vocals_path = tempfile.mktemp(suffix=".wav")
-        instrumental_path = tempfile.mktemp(suffix=".wav")
+        # Get the audio data from response
+        response_data = ai_response.json()
 
-        with open(vocals_path, "wb") as f:
-            f.write(ai_response.json()["vocals"])
-        with open(instrumental_path, "wb") as f:
-            f.write(ai_response.json()["instrumental"])
+        # Convert binary data to base64 if it's not already
+        if isinstance(response_data["vocals"], bytes):
+            vocals_base64 = base64.b64encode(response_data["vocals"]).decode()
+            instrumental_base64 = base64.b64encode(
+                response_data["instrumental"]
+            ).decode()
+        else:
+            vocals_base64 = response_data["vocals"]
+            instrumental_base64 = response_data["instrumental"]
 
-        # Return both files in the response
+        # Return both files as base64 strings
         return JSONResponse(
-            content={
-                "vocals": FileResponse(
-                    vocals_path, media_type="audio/wav", filename="vocals.wav"
-                ),
-                "instrumental": FileResponse(
-                    instrumental_path,
-                    media_type="audio/wav",
-                    filename="instrumental.wav",
-                ),
-            }
+            content={"vocals": vocals_base64, "instrumental": instrumental_base64}
         )
 
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
 
     finally:
-        # Clean up temporary files
-        for path in [tmp_path, vocals_path, instrumental_path]:
-            if path and os.path.exists(path):
-                os.remove(path)
+        # Clean up temporary file
+        if tmp_path and os.path.exists(tmp_path):
+            os.remove(tmp_path)

@@ -1,5 +1,6 @@
 import sys
 import os
+import base64
 from unittest.mock import patch, MagicMock
 from fastapi.testclient import TestClient
 import pytest
@@ -21,10 +22,10 @@ def test_health():
 
 @pytest.fixture
 def ai_response_data():
-    # Mock binary data for audio files
+    # Mock base64 encoded audio data
     return {
-        "vocals": b"mock_vocals_audio_data",
-        "instrumental": b"mock_instrumental_audio_data",
+        "vocals": base64.b64encode(b"mock_vocals_audio_data").decode(),
+        "instrumental": base64.b64encode(b"mock_instrumental_audio_data").decode(),
     }
 
 
@@ -36,6 +37,10 @@ def mock_async_post(ai_response_data):
 
             def json(self):
                 return ai_response_data
+
+            @property
+            def text(self):
+                return "Success"
 
         return MockResponse()
 
@@ -57,9 +62,15 @@ async def test_separate_voice_endpoint(mock_async_post):
         assert response.status_code == 200
         response_data = response.json()
 
-        # Check if both audio files are in the response
+        # Check if both audio files are in the response as base64 strings
         assert "vocals" in response_data
         assert "instrumental" in response_data
+        assert isinstance(response_data["vocals"], str)
+        assert isinstance(response_data["instrumental"], str)
+
+        # Verify the content can be decoded from base64
+        assert base64.b64decode(response_data["vocals"])
+        assert base64.b64decode(response_data["instrumental"])
 
 
 @pytest.mark.asyncio
@@ -68,6 +79,9 @@ async def test_separate_voice_ai_server_error():
         class MockResponse:
             status_code = 500
             text = "AI Server Error"
+
+            def json(self):
+                return {"error": "AI Server Error"}
 
         return MockResponse()
 
