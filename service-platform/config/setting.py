@@ -1,10 +1,17 @@
-from dotenv import load_dotenv, find_dotenv
 import os
-import sys
+from pathlib import Path
+from dotenv import load_dotenv
 
-load_dotenv(find_dotenv())
+# Load environment variables from .env file if it exists
+env_path = Path(__file__).parent.parent / ".env"
+if env_path.exists():
+    load_dotenv(env_path)
 
-_env = os.environ
+# Load test environment variables if in test environment
+if os.getenv("TESTING") == "true":
+    test_env_path = Path(__file__).parent.parent / ".env.test"
+    if test_env_path.exists():
+        load_dotenv(test_env_path)
 
-
-AI_BASE_URL = _env["AI_BASE_URL"]
+# Get environment variables with defaults for testing
+AI_BASE_URL = os.getenv("AI_BASE_URL", "http://mock-ai-server.test")

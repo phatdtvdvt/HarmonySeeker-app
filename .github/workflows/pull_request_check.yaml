@@ -11,15 +11,19 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install Poetry
-        run: pip install poetry
+
       - name: Install dependencies
-        run: poetry install
+        working-directory: ./service-platform
+        run: pip install -r requirements.txt
+
       - name: Run all tests
-        run: |
-          cd service-platform
-          PYTHONPATH=$(pwd) poetry run pytest
+        working-directory: ./service-platform
+        env:
+          TESTING: "true"
+          AI_BASE_URL: "http://mock-ai-server.test"
+        run: pytest

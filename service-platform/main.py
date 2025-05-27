@@ -1,5 +1,9 @@
 from fastapi import FastAPI, Request
-from routers import router  # Import the main router aggregator
+from routers import (
+    router,
+    songchord,
+    voiceseparator,
+)  # Import the main router aggregator
 from fastapi.middleware.cors import CORSMiddleware
 import os
 import time
@@ -15,6 +19,8 @@ def health_check():
 
 # Include all routers under the /api prefix
 app.include_router(router, prefix="/api")
+app.include_router(songchord.router, prefix="/api", tags=["songchord"])
+app.include_router(voiceseparator.router, prefix="/api", tags=["voiceseparator"])
 
 app.add_middleware(
     CORSMiddleware,

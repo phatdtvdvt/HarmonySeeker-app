@@ -18,7 +18,7 @@
           <p>Upload your song and get instant key and chord predictions using advanced AI models.</p>
         </div>
         <div class="feature-card">
-          <h3>🎤 Voice Removal</h3>
+          <h3>🎤 Voice Separator</h3>
           <p>Separate vocals and instrumentals for karaoke or remixing with a single click.</p>
         </div>
         <div class="feature-card">
