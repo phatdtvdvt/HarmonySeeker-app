@@ -17,17 +17,10 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install Poetry
-        run: pip install poetry
-
-      - name: Generate lock file if necessary
-        working-directory: ./service-platform
-        run: poetry lock
-
       - name: Install dependencies
         working-directory: ./service-platform
-        run: poetry install
+        run: pip install -r requirements.txt
 
       - name: Run all tests
         working-directory: ./service-platform
-        run: poetry run pytest
+        run: pytest
