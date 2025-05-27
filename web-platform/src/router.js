@@ -1,4 +1,3 @@
-
 import { createRouter, createWebHistory } from 'vue-router'
 
 const routes = [
@@ -11,6 +10,11 @@ const routes = [
     path: '/songchord',
     name: 'SongChord',
     component: () => import('@/pages/SongChord/index.vue')
+  },
+  {
+    path: '/voiceseparator',
+    name: 'VoiceSeparator',
+    component: () => import('@/pages/VoiceSeparator/index.vue')
   }
 ]
 

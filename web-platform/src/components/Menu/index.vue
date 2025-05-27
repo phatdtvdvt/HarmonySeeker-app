@@ -36,7 +36,7 @@ const navItems = ref([
     disabled: false
   },
   { 
-    text: 'Voice Removal',
+    text: 'Voice Separator',
     to: '/voiceseparator',
     disabled: false
   }

@@ -15,16 +15,6 @@
           v-chip(color="primary" variant="elevated" size="large" class="chord-chip px-6 py-2")
             v-icon(start class="mr-2") mdi-music-note
             span.text-subtitle-1 Current Chord: {{ currentChord }}
-        div.wave-container.mt-6.rounded-lg.pa-4
-          span Duration: {{ formatTime(audioDuration) }}
-          div.d-flex.align-center.justify-space-between
-            template(v-if="waveReady")
-              v-btn(icon size="large" color="primary" variant="tonal" class="control-btn mr-2" @click="togglePlay")
-                v-icon(size="32") {{ isPlaying ? 'mdi-pause' : 'mdi-play' }}
-            div.flex-grow-1(ref="waveformContainer")
-            template(v-if="waveReady")
-              v-btn(icon size="large" color="error" variant="tonal" class="control-btn ml-2" @click="onDeleteAudio")
-                v-icon(size="26") mdi-delete
         div.upload-container.mt-8.pa-6.rounded-lg(v-if="!waveReady")
           input(type="file" accept="audio/*" @change="onFileChange" hidden ref="fileInput")
           div.d-flex.flex-column.align-center
