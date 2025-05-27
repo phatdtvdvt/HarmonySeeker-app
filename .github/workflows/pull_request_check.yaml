@@ -18,8 +18,8 @@ jobs:
       - name: Install Poetry
         run: pip install poetry
       - name: Install dependencies
+        working-directory: ./service-platform
         run: poetry install
       - name: Run all tests
-        run: |
-          cd service-platform
-          PYTHONPATH=$(pwd) poetry run pytest
+        working-directory: ./service-platform
+        run: poetry run pytest
