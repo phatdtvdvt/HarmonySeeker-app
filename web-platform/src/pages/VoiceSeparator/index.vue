@@ -6,54 +6,125 @@
         p.text-body-1.text-grey-lighten-2.mt-2.font-weight-bold
           | Separate vocals and instrumentals from your music using advanced AI technology.
           | Perfect for karaoke, remixing, or music production.
+      
       div.app-content.pa-6
         // Original Audio Section
-        div.wave-container.mt-6.rounded-lg.pa-4(v-if="originalWaveReady")
-          div.d-flex.align-center.justify-space-between.mb-4
-            h3.text-h6.font-weight-medium.comic-font Original Audio
-            span.duration-text.comic-font Duration: {{ formatTime(originalDuration) }}
-          div.d-flex.align-center.justify-space-between
-            v-btn(icon size="large" color="primary" variant="tonal" class="control-btn mr-2" @click="toggleOriginalPlay")
-              v-icon(size="32") {{ isOriginalPlaying ? 'mdi-pause' : 'mdi-play' }}
-            div.flex-grow-1(ref="originalWaveformContainer")
-            v-btn(icon size="large" color="error" variant="tonal" class="control-btn ml-2" @click="onDeleteAudio")
-              v-icon(size="26") mdi-delete
+        template(v-if="originalAudioFile")
+          div.section-header.mb-4
+            h3.text-h6.font-weight-medium.comic-font 
+              v-icon(color="primary" class="mr-2") mdi-music-note
+              | Original Audio
+          
+          WaveformPlayer(
+            :audioFile="originalAudioFile"
+            :isPlaying="isOriginalPlaying"
+            :audioDuration="originalDuration"
+            waveColor="rgba(25, 118, 210, 0.4)"
+            progressColor="#1976D2"
+            @play="isOriginalPlaying = true"
+            @pause="isOriginalPlaying = false"
+            @delete="handleDeleteOriginal"
+            @ready="handleOriginalReady"
+            @finish="isOriginalPlaying = false"
+          )
+          
+          // Separate Button
+          div.text-center.mt-6(v-if="!separationComplete && !isProcessing")
+            v-btn.separate-btn(
+              size="large"
+              color="primary"
+              @click="handleSeparateVoice"
+              prepend-icon="mdi-music-box-multiple"
+              :loading="isProcessing"
+            )
+              | Separate Voice
+        
+        // Processing Animation
+        div.processing-container.mt-8(v-if="isProcessing")
+          v-progress-circular(
+            indeterminate
+            color="primary"
+            size="64"
+          )
+          h3.text-h6.mt-4.comic-font Separating audio...
+          p.text-body-2.text-grey-darken-1.comic-font This may take a few moments
 
         // Separated Audio Sections
         template(v-if="separationComplete")
           // Vocals Section
-          div.wave-container.mt-6.rounded-lg.pa-4
-            div.d-flex.align-center.justify-space-between.mb-4
-              h3.text-h6.font-weight-medium.comic-font 
-                v-icon(color="primary" class="mr-2") mdi-microphone
-                | Vocals
-              div.d-flex.align-center
-                v-btn(icon size="small" color="primary" variant="text" class="mr-2" @click="downloadVocals")
-                  v-icon(size="20") mdi-download
-                span.duration-text.comic-font Duration: {{ formatTime(vocalsDuration) }}
-            div.d-flex.align-center.justify-space-between
-              v-btn(icon size="large" color="primary" variant="tonal" class="control-btn mr-2" @click="toggleVocalsPlay")
-                v-icon(size="32") {{ isVocalsPlaying ? 'mdi-pause' : 'mdi-play' }}
-              div.flex-grow-1(ref="vocalsWaveformContainer")
+          div.section-header.mb-4.mt-8
+            h3.text-h6.font-weight-medium.comic-font 
+              v-icon(color="success" class="mr-2") mdi-microphone
+              | Vocals
+            v-btn(
+              icon 
+              size="small" 
+              color="success" 
+              variant="text" 
+              @click="downloadVocals"
+              class="ml-auto"
+            )
+              v-icon(size="20") mdi-download
+          
+          WaveformPlayer(
+            :audioFile="vocalsAudioFile"
+            :isPlaying="isVocalsPlaying"
+            :audioDuration="vocalsDuration"
+            waveColor="rgba(76, 175, 80, 0.4)"
+            progressColor="#4CAF50"
+            @play="isVocalsPlaying = true"
+            @pause="isVocalsPlaying = false"
+            @ready="handleVocalsReady"
+            @finish="isVocalsPlaying = false"
+          )
 
           // Instrumental Section
-          div.wave-container.mt-6.rounded-lg.pa-4
-            div.d-flex.align-center.justify-space-between.mb-4
-              h3.text-h6.font-weight-medium.comic-font
-                v-icon(color="primary" class="mr-2") mdi-piano
-                | Instrumental
-              div.d-flex.align-center
-                v-btn(icon size="small" color="primary" variant="text" class="mr-2" @click="downloadInstrumental")
-                  v-icon(size="20") mdi-download
-                span.duration-text.comic-font Duration: {{ formatTime(instrumentalDuration) }}
-            div.d-flex.align-center.justify-space-between
-              v-btn(icon size="large" color="primary" variant="tonal" class="control-btn mr-2" @click="toggleInstrumentalPlay")
-                v-icon(size="32") {{ isInstrumentalPlaying ? 'mdi-pause' : 'mdi-play' }}
-              div.flex-grow-1(ref="instrumentalWaveformContainer")
+          div.section-header.mb-4.mt-6
+            h3.text-h6.font-weight-medium.comic-font
+              v-icon(color="warning" class="mr-2") mdi-piano
+              | Instrumental
+            v-btn(
+              icon 
+              size="small" 
+              color="warning" 
+              variant="text" 
+              @click="downloadInstrumental"
+              class="ml-auto"
+            )
+              v-icon(size="20") mdi-download
+
+          WaveformPlayer(
+            :audioFile="instrumentalAudioFile"
+            :isPlaying="isInstrumentalPlaying"
+            :audioDuration="instrumentalDuration"
+            waveColor="rgba(255, 152, 0, 0.4)"
+            progressColor="#FF9800"
+            @play="isInstrumentalPlaying = true"
+            @pause="isInstrumentalPlaying = false"
+            @ready="handleInstrumentalReady"
+            @finish="isInstrumentalPlaying = false"
+          )
+
+          // New Separation Button
+          div.text-center.mt-8
+            v-btn.new-separation-btn(
+              size="large"
+              color="secondary"
+              variant="outlined"
+              @click="handleNewSeparation"
+              prepend-icon="mdi-refresh"
+            )
+              | New Separation
 
         // Upload Container
-        div.upload-container.mt-8.pa-6.rounded-lg(v-if="!originalWaveReady")
-          input(type="file" accept="audio/*" @change="onFileChange" hidden ref="fileInput")
+        div.upload-container.mt-8.pa-6.rounded-lg(v-if="!originalAudioFile")
+          input(
+            type="file" 
+            accept="audio/*" 
+            @change="onFileChange" 
+            hidden 
+            ref="fileInput"
+          )
           div.d-flex.flex-column.align-center
             v-icon(size="64" color="primary") mdi-music-box-multiple
             span.font-weight-medium.text-h6.mt-4.comic-font Choose a song to separate
@@ -66,30 +137,21 @@
               :loading="isUploading"
             )
               | Upload Audio
-
-        // Processing Animation
-        div.processing-container.mt-8(v-if="isProcessing")
-          v-progress-circular(
-            indeterminate
-            color="primary"
-            size="64"
-          )
-          h3.text-h6.mt-4.comic-font Separating audio...
-          p.text-body-2.text-grey-darken-1.comic-font This may take a few moments
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import WaveSurfer from 'wavesurfer.js'
+import { ref } from 'vue'
+import WaveformPlayer from '@/components/WaveformPlayer/index.vue'
 import api from '@/plugins/axios'
+import JSZip from 'jszip'
 
 // State Management
 const fileInput = ref<HTMLInputElement | null>(null)
-const originalWaveformContainer = ref<HTMLDivElement | null>(null)
-const vocalsWaveformContainer = ref<HTMLDivElement | null>(null)
-const instrumentalWaveformContainer = ref<HTMLDivElement | null>(null)
 
-const originalWaveReady = ref(false)
+const originalAudioFile = ref<File | null>(null)
+const vocalsAudioFile = ref<File | null>(null)
+const instrumentalAudioFile = ref<File | null>(null)
+
 const separationComplete = ref(false)
 const isUploading = ref(false)
 const isProcessing = ref(false)
@@ -102,162 +164,140 @@ const originalDuration = ref(0)
 const vocalsDuration = ref(0)
 const instrumentalDuration = ref(0)
 
-// Wavesurfer instances
-let originalWavesurfer: WaveSurfer | null = null
-let vocalsWavesurfer: WaveSurfer | null = null
-let instrumentalWavesurfer: WaveSurfer | null = null
-
-// Helper Functions
-const formatTime = (timeInSeconds: number): string => {
-  const minutes = Math.floor(timeInSeconds / 60)
-  const seconds = Math.floor(timeInSeconds % 60)
-  return `${minutes}:${seconds.toString().padStart(2, '0')}`
-}
-
-const createWaveSurfer = (container: HTMLElement) => {
-  return WaveSurfer.create({
-    container: container,
-    waveColor: 'rgba(119, 92, 240, 0.4)',
-    progressColor: '#775CF0',
-    barWidth: 4,
-    barGap: 3,
-    barRadius: 4,
-    height: 70,
-    cursorColor: '#333',
-    cursorWidth: 2
-  })
-}
-
 // Event Handlers
 const selectFile = () => {
   fileInput.value?.click()
 }
 
-const onFileChange = async (e: Event) => {
-  if (fileInput.value) fileInput.value.value = ''
+const onFileChange = (e: Event) => {
   const target = e.target as HTMLInputElement
   const file = target.files?.[0]
   
   if (file) {
     isUploading.value = true
-    const formData = new FormData()
-    formData.append('file', file)
-
-    try {
-      // Load original audio waveform
-      if (originalWaveformContainer.value) {
-        if (originalWavesurfer) {
-          originalWavesurfer.destroy()
-        }
-        originalWavesurfer = createWaveSurfer(originalWaveformContainer.value)
-        originalWavesurfer.loadBlob(file)
-        
-        originalWavesurfer.on('ready', () => {
-          originalWaveReady.value = true
-          isOriginalPlaying.value = false
-          originalDuration.value = originalWavesurfer?.getDuration() || 0
-        })
-        
-        originalWavesurfer.on('finish', () => {
-          isOriginalPlaying.value = false
-        })
-      }
-
-      // Upload and process
-      isProcessing.value = true
-      const response = await api.post('api/separate-voice', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      })
-
-      // Load separated audio waveforms
-      if (vocalsWaveformContainer.value && instrumentalWaveformContainer.value) {
-        // Create vocals waveform
-        if (vocalsWavesurfer) vocalsWavesurfer.destroy()
-        vocalsWavesurfer = createWaveSurfer(vocalsWaveformContainer.value)
-        
-        // Create instrumental waveform
-        if (instrumentalWavesurfer) instrumentalWavesurfer.destroy()
-        instrumentalWavesurfer = createWaveSurfer(instrumentalWaveformContainer.value)
-
-        // Load the separated audio files
-        const vocalsBlob = new Blob([response.data.vocals], { type: 'audio/wav' })
-        const instrumentalBlob = new Blob([response.data.instrumental], { type: 'audio/wav' })
-
-        vocalsWavesurfer.loadBlob(vocalsBlob)
-        instrumentalWavesurfer.loadBlob(instrumentalBlob)
-
-        vocalsWavesurfer.on('ready', () => {
-          vocalsDuration.value = vocalsWavesurfer?.getDuration() || 0
-        })
-
-        instrumentalWavesurfer.on('ready', () => {
-          instrumentalDuration.value = instrumentalWavesurfer?.getDuration() || 0
-          separationComplete.value = true
-          isProcessing.value = false
-        })
-      }
-    } catch (error) {
-      console.error('Error processing audio:', error)
-      isProcessing.value = false
-    } finally {
-      isUploading.value = false
-    }
+    originalAudioFile.value = file
+    isUploading.value = false
   }
 }
 
-const onDeleteAudio = () => {
-  if (originalWavesurfer) {
-    originalWavesurfer.destroy()
-    originalWavesurfer = null
+const handleOriginalReady = (duration: number) => {
+  originalDuration.value = duration
+}
+
+const handleVocalsReady = (duration: number) => {
+  vocalsDuration.value = duration
+}
+
+const handleInstrumentalReady = (duration: number) => {
+  instrumentalDuration.value = duration
+}
+
+const handleDeleteOriginal = () => {
+  originalAudioFile.value = null
+  vocalsAudioFile.value = null
+  instrumentalAudioFile.value = null
+  separationComplete.value = false
+  resetPlayingStates()
+}
+
+const handleSeparateVoice = async () => {
+  if (!originalAudioFile.value) return
+  
+  isProcessing.value = true
+  
+  try {
+    const formData = new FormData()
+    formData.append('file', originalAudioFile.value)
+
+    const response = await api.post('api/separate-voice', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      responseType: 'blob'
+    })
+    const { vocalsBlob, instrumentalBlob } = await extractAudioFromZipWithJSZip(response.data)
+    console.log(vocalsBlob, instrumentalBlob)
+    vocalsAudioFile.value = new File([vocalsBlob], 'vocals.wav', { type: 'audio/wav' })
+    instrumentalAudioFile.value = new File([instrumentalBlob], 'instrumental.wav', { type: 'audio/wav' })
+    
+    separationComplete.value = true
+    
+  } catch (error) {
+    console.error('Error processing audio:', error)
+    // Handle error appropriately
+  } finally {
+    isProcessing.value = false
   }
-  if (vocalsWavesurfer) {
-    vocalsWavesurfer.destroy()
-    vocalsWavesurfer = null
-  }
-  if (instrumentalWavesurfer) {
-    instrumentalWavesurfer.destroy()
-    instrumentalWavesurfer = null
+}
+
+const extractAudioFromZipWithJSZip = async (zipBlob: Blob) => {
+  const JSZip = (await import('jszip')).default
+  const zip = await JSZip.loadAsync(zipBlob)
+  
+  const vocalsFile = zip.file('vocals.wav')
+  const musicFile = zip.file('music.wav')
+  
+  if (!vocalsFile || !musicFile) {
+    throw new Error('Could not find vocals.wav or music.wav in zip file')
   }
   
-  originalWaveReady.value = false
+  const vocalsBlob = new Blob([await vocalsFile.async('uint8array')], { type: 'audio/wav' })
+  const instrumentalBlob = new Blob([await musicFile.async('uint8array')], { type: 'audio/wav' })
+  
+  return { vocalsBlob, instrumentalBlob }
+}
+
+const handleNewSeparation = () => {
+  // Reset everything to start fresh
+  originalAudioFile.value = null
+  vocalsAudioFile.value = null
+  instrumentalAudioFile.value = null
   separationComplete.value = false
+  resetPlayingStates()
+  resetDurations()
+  
+  // Clear file input
+  if (fileInput.value) {
+    fileInput.value.value = ''
+  }
+}
+
+const resetPlayingStates = () => {
   isOriginalPlaying.value = false
   isVocalsPlaying.value = false
   isInstrumentalPlaying.value = false
+}
+
+const resetDurations = () => {
   originalDuration.value = 0
   vocalsDuration.value = 0
   instrumentalDuration.value = 0
 }
 
-const toggleOriginalPlay = () => {
-  if (originalWavesurfer) {
-    originalWavesurfer.playPause()
-    isOriginalPlaying.value = originalWavesurfer.isPlaying()
-  }
-}
-
-const toggleVocalsPlay = () => {
-  if (vocalsWavesurfer) {
-    vocalsWavesurfer.playPause()
-    isVocalsPlaying.value = vocalsWavesurfer.isPlaying()
-  }
-}
-
-const toggleInstrumentalPlay = () => {
-  if (instrumentalWavesurfer) {
-    instrumentalWavesurfer.playPause()
-    isInstrumentalPlaying.value = instrumentalWavesurfer.isPlaying()
-  }
-}
-
 const downloadVocals = () => {
-  // Implement download logic for vocals
+  if (vocalsAudioFile.value) {
+    const url = URL.createObjectURL(vocalsAudioFile.value)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'vocals.wav'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
 }
 
 const downloadInstrumental = () => {
-  // Implement download logic for instrumental
+  if (instrumentalAudioFile.value) {
+    const url = URL.createObjectURL(instrumentalAudioFile.value)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'instrumental.wav'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
 }
 </script>
 
@@ -321,24 +361,10 @@ const downloadInstrumental = () => {
   margin-top: 12px;
 }
 
-.wave-container {
-  background-color: #fafbff;
-  border: 1px solid #e0e6f0;
-  border-radius: 16px;
-  padding: 24px;
-  transition: all 0.3s ease;
-}
-
-.wave-container:hover {
-  box-shadow: 0 10px 20px rgba(74, 58, 255, 0.1);
-  transform: translateY(-2px);
-}
-
-.duration-text {
-  font-size: 1rem;
-  font-family: 'Comic Neue', 'Comic Sans MS', cursive, sans-serif !important;
-  font-weight: 600;
-  color: #666;
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .upload-container {
@@ -372,12 +398,32 @@ const downloadInstrumental = () => {
   box-shadow: 0 8px 20px rgba(74, 58, 255, 0.35);
 }
 
-.control-btn {
-  transition: transform 0.2s;
+.separate-btn {
+  min-width: 180px;
+  border-radius: 12px;
+  padding: 16px 32px;
+  font-weight: 600;
+  text-transform: none;
+  box-shadow: 0 6px 16px rgba(74, 58, 255, 0.25);
+  transition: 0.3s;
 }
 
-.control-btn:hover {
-  transform: scale(1.15);
+.separate-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(74, 58, 255, 0.35);
+}
+
+.new-separation-btn {
+  min-width: 160px;
+  border-radius: 12px;
+  padding: 14px 28px;
+  font-weight: 600;
+  text-transform: none;
+  transition: 0.3s;
+}
+
+.new-separation-btn:hover {
+  transform: translateY(-2px);
 }
 
 .processing-container {
@@ -401,11 +447,7 @@ const downloadInstrumental = () => {
     font-size: 1.1rem;
   }
 
-  .wave-container {
-    padding: 16px;
-  }
-
-  .upload-btn {
+  .upload-btn, .separate-btn {
     padding: 12px 20px;
     min-width: 160px;
   }
@@ -414,4 +456,4 @@ const downloadInstrumental = () => {
 .comic-font {
   font-family: 'Comic Neue', 'Comic Sans MS', cursive, sans-serif !important;
 }
-</style> 
+</style>
