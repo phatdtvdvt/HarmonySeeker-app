@@ -1,13 +1,20 @@
 import os
 import tempfile
 
+from dotenv import load_dotenv
 import httpx
 from fastapi import APIRouter, File, UploadFile
 from fastapi.responses import JSONResponse
 import soundfile as sf
-from config.setting import AI_BASE_URL
 
 router = APIRouter()
+
+# Load environment variables
+load_dotenv(override=True)
+
+AI_BASE_URL = os.getenv("AI_BASE_URL")
+
+print("AI_BASE_URL", AI_BASE_URL)
 
 
 @router.post("/predict-chord")
@@ -19,6 +26,8 @@ async def predict_chord(file: UploadFile = File(...)):
     PREDICT_CHORD_URL = f"{AI_BASE_URL}/ai/predict-chord"
 
     tmp_path = None
+    print("PREDICT_CHORD_URL", PREDICT_CHORD_URL)
+    print("AI_BASE_URL", AI_BASE_URL)
 
     try:
         # Save uploaded file temporarily
