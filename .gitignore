@@ -48,6 +48,9 @@ coverage.xml
 # Pytest
 .pytest_cache/
 
+# Package
+package/
+
 # ==== Node / Vue.js ====
 node_modules/
 dist/
