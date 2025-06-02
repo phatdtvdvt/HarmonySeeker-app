@@ -1,5 +1,5 @@
 <template lang="pug">
-  v-container.pa-4(style="width: 1200px; height: 100px")
+  v-container.pa-4(style="max-width: 1200px; min-height: 100px")
     v-card.rounded-xl.elevation-5.music-app-card
       div.app-header.pa-6.rounded-t-xl.text-left
         h1.text-h3.font-weight-bold.text-grey-lighten-2 Free Online Key Chord Predictor
@@ -250,27 +250,62 @@ const onTimeUpdate = (time: number) => {
     padding: 24px;
   }
 
-  .gradient-text {
-    font-size: 2.8rem;
+  .app-header h1 {
+    font-size: 2rem;
   }
 
-  .upload-btn {
+  .app-header p {
+    font-size: 1.1rem;
+  }
+
+  .gradient-text {
+    font-size: 3rem;
+  }
+
+  .upload-btn, .detect-btn {
     padding: 12px 20px;
     min-width: 160px;
   }
+
+  .key-display {
+    padding: 16px 0;
+  }
+
+  .chord-chip {
+    font-size: 1rem;
+    padding: 8px 16px !important;
+  }
 }
 
-.upload-container span.font-weight-medium.text-h6.mt-4 {
-  font-size: 1.4rem;
-  font-family: 'Comic Neue', 'Comic Sans MS', cursive, sans-serif !important;
-  font-weight: 700;
-  padding: 8px 0;
+@media (max-width: 480px) {
+  .app-header h1 {
+    font-size: 1.8rem;
+  }
+
+  .app-header p {
+    font-size: 1rem;
+  }
+
+  .gradient-text {
+    font-size: 2.5rem;
+  }
+
+  .upload-container {
+    padding: 24px 16px;
+  }
+
+  .upload-btn {
+    width: 100%;
+    margin-top: 16px;
+  }
+
+  .chord-chip {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
-.upload-container span.text-caption.text-grey-darken-1.mt-1 {
-  font-size: 1.1rem;
+.comic-font {
   font-family: 'Comic Neue', 'Comic Sans MS', cursive, sans-serif !important;
-  font-weight: 500;
-  padding-bottom: 8px;
 }
 </style>

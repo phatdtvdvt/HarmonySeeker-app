@@ -1,24 +1,27 @@
-# version: "3.9"
+version: "3.9"
 
 services:
   fe:
-    image: node:22.9.0
-    environment:
-      - HOME=/tmp
-      - HOST=0.0.0.0
-      - PORT=3000
+    build: ./web-platform
     volumes:
       - ./web-platform:/app
-    env_file: [.env]
+    environment:
+      - HOST=0.0.0.0
+      - PORT=3000
     working_dir: /app
-    ports: ['3000:3000']
-    command: /bin/sh -c "npm install && npm run dev -- --port 3000"
+    env_file: [.env]
+    ports:
+      - "3000:3000"
+    command: ["npm", "run", "dev", "--", "--port", "3000"]
+
   be:
+    platform: linux/amd64
     build: ./service-platform
     volumes:
-      - './service-platform:/app'
-    ports: [ '8000:8000' ]
+      - ./service-platform:/app
+    ports:
+      - "8001:8001"
     working_dir: /app
     env_file: [.env]
-    entrypoint: /bin/sh -c "poetry lock && poetry install && poetry run fastapi dev main.py --host 0.0.0.0 --port 8000"
-  
+    entrypoint: ["poetry", "run"]
+    command: ["fastapi", "dev", "main.py", "--host", "0.0.0.0", "--port", "8001"]
