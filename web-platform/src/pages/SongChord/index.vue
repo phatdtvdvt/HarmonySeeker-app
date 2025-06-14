@@ -19,15 +19,23 @@
           div.circle-wrapper
             div.circle-of-fifth
               // Outer circle (Major keys)
-              div.circle-element.major(v-for="(majorKey, index) in circleOfFifthMajor" :key="'major-'+index" 
-                  :class="{'active-chord': detectedKey === majorKey}"
-                  :style="getCirclePosition(index, circleOfFifthMajor.length, 140)")
+              div.circle-element.major(
+                v-for="(majorKey, index) in circleOfFifthMajor"
+                :key="'major-'+index"
+                :class="{'active-chord': detectedKey === majorKey}"
+                :style="getCirclePosition(index, circleOfFifthMajor.length, 140)"
+                :data-tooltip="majorKey"
+              )
                 span.comic-font {{ majorKey }}
               
               // Inner circle (Minor keys)
-              div.circle-element.minor(v-for="(minorKey, index) in circleOfFifthMinor" :key="'minor-'+index" 
-                  :class="{'active-chord': detectedKey === minorKey}"
-                  :style="getCirclePosition(index, circleOfFifthMinor.length, 80)")
+              div.circle-element.minor(
+                v-for="(minorKey, index) in circleOfFifthMinor"
+                :key="'minor-'+index"
+                :class="{'active-chord': detectedKey === minorKey}"
+                :style="getCirclePosition(index, circleOfFifthMinor.length, 80)"
+                :data-tooltip="minorKey"
+              )
                 span.comic-font {{ minorKey }}
             
             // Center chord
@@ -286,12 +294,18 @@ const onDetectKey = async () => {
   }
 } 
 
+const MAX_FILE_SIZE_MB = 10
+
 const onFileChange = async (e: Event) => {
   const target = e.target as HTMLInputElement
   const file = target.files?.[0]
   console.log(file)
   
   if (file) {
+    if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+      alert('File is too large! Maximum allowed size is 10MB.')
+      return
+    }
     selectedFile.value = file
     waveReady.value = true
     isPlaying.value = false
@@ -463,6 +477,7 @@ const onTimeUpdate = (time: number) => {
   position: relative;
   width: 100%;
   height: 100%;
+  animation: circle-breath 3s infinite alternate cubic-bezier(0.4,0,0.2,1);
 }
 
 .circle-element {
@@ -475,7 +490,56 @@ const onTimeUpdate = (time: number) => {
   border-radius: 50%;
   font-weight: bold;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  transition: all 0.3s ease;
+  transition: 
+    transform 0.25s cubic-bezier(0.4,0,0.2,1),
+    box-shadow 0.25s cubic-bezier(0.4,0,0.2,1),
+    background 0.25s,
+    color 0.25s;
+  cursor: pointer;
+  z-index: 1;
+  will-change: transform, box-shadow;
+}
+
+.circle-element:hover, .circle-element:focus {
+  transform: scale(1.35) rotate(-8deg);
+  box-shadow: 0 8px 32px 0 rgba(124, 58, 237, 0.25), 0 0 0 4px #e0d7fa;
+  background: linear-gradient(135deg, #a084f7 0%, #775CF0 100%);
+  color: #fff !important;
+  border: 2.5px solid #775CF0;
+  outline: none;
+}
+
+.circle-element.major:hover {
+  background: linear-gradient(135deg, #7c4dff 0%, #42a5f5 100%);
+}
+
+.circle-element.minor:hover {
+  background: linear-gradient(135deg, #b388ff 0%, #7e57c2 100%);
+}
+
+.circle-element::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: -38px;
+  left: 50%;
+  transform: translateX(-50%) scale(0.95);
+  background: rgba(74, 58, 255, 0.95);
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  transition: opacity 0.2s, transform 0.2s;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(74,58,255,0.13);
+}
+
+.circle-element:hover::after, .circle-element:focus::after {
+  opacity: 1;
+  transform: translateX(-50%) scale(1.05);
 }
 
 .circle-element.major {
@@ -515,6 +579,12 @@ const onTimeUpdate = (time: number) => {
   font-weight: bold;
   box-shadow: 0 4px 16px rgba(74, 58, 255, 0.3);
   z-index: 5;
+  animation: center-pulse 2.2s infinite cubic-bezier(0.4,0,0.2,1);
+}
+
+@keyframes center-pulse {
+  0%, 100% { box-shadow: 0 4px 16px rgba(74, 58, 255, 0.3); }
+  50% { box-shadow: 0 0 32px 8px #775CF055; }
 }
 
 /* Chord Suggestion Styles */

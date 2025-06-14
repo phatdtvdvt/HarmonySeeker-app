@@ -164,6 +164,10 @@ const originalDuration = ref(0)
 const vocalsDuration = ref(0)
 const instrumentalDuration = ref(0)
 
+const MAX_FILE_SIZE_MB = 10
+const MAX_AUDIO_DURATION = 30 // seconds
+
+
 // Event Handlers
 const selectFile = () => {
   fileInput.value?.click()
@@ -174,6 +178,10 @@ const onFileChange = (e: Event) => {
   const file = target.files?.[0]
   
   if (file) {
+    if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+      alert('File is too large! Maximum allowed size is 10MB.')
+      return
+    }
     isUploading.value = true
     originalAudioFile.value = file
     isUploading.value = false
@@ -182,6 +190,15 @@ const onFileChange = (e: Event) => {
 
 const handleOriginalReady = (duration: number) => {
   originalDuration.value = duration
+  
+  if (duration > MAX_AUDIO_DURATION) {
+    alert('Audio is too long! Maximum allowed duration is 30 seconds.')
+    // Reset file selection
+    originalAudioFile.value = null
+    separationComplete.value = false
+    resetPlayingStates()
+    resetDurations()
+  }
 }
 
 const handleVocalsReady = (duration: number) => {
@@ -212,11 +229,16 @@ const handleSeparateVoice = async () => {
     const response = await api.post('api/separate-voice', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
-      },
-      responseType: 'blob'
+      }
     })
-    const { vocalsBlob, instrumentalBlob } = await extractAudioFromZipWithJSZip(response.data)
-    console.log(vocalsBlob, instrumentalBlob)
+
+    // Download vocals and instrumental from S3 URLs
+    const vocalsResponse = await fetch(response.data.vocals_url)
+    const instrumentalResponse = await fetch(response.data.music_url)
+    
+    const vocalsBlob = await vocalsResponse.blob()
+    const instrumentalBlob = await instrumentalResponse.blob()
+    
     vocalsAudioFile.value = new File([vocalsBlob], 'vocals.wav', { type: 'audio/wav' })
     instrumentalAudioFile.value = new File([instrumentalBlob], 'instrumental.wav', { type: 'audio/wav' })
     
@@ -228,23 +250,6 @@ const handleSeparateVoice = async () => {
   } finally {
     isProcessing.value = false
   }
-}
-
-const extractAudioFromZipWithJSZip = async (zipBlob: Blob) => {
-  const JSZip = (await import('jszip')).default
-  const zip = await JSZip.loadAsync(zipBlob)
-  
-  const vocalsFile = zip.file('vocals.wav')
-  const musicFile = zip.file('music.wav')
-  
-  if (!vocalsFile || !musicFile) {
-    throw new Error('Could not find vocals.wav or music.wav in zip file')
-  }
-  
-  const vocalsBlob = new Blob([await vocalsFile.async('uint8array')], { type: 'audio/wav' })
-  const instrumentalBlob = new Blob([await musicFile.async('uint8array')], { type: 'audio/wav' })
-  
-  return { vocalsBlob, instrumentalBlob }
 }
 
 const handleNewSeparation = () => {
