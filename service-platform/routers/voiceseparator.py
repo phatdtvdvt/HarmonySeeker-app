@@ -23,7 +23,7 @@ print("AI_BASE_URL", AI_BASE_URL)
 async def separate_voice(file: UploadFile = File(...)):
     """
     Receive an audio file, forward it to the AI server for voice separation,
-    and return both the vocals and instrumental tracks as base64 encoded strings.
+    and return the S3 URLs for both the vocals and instrumental tracks.
     """
     SEPARATE_VOICE_URL = f"{AI_BASE_URL}/ai/separate-voice"
     file_bytes = await file.read()
@@ -32,8 +32,14 @@ async def separate_voice(file: UploadFile = File(...)):
         files = {"file": (file.filename, file_bytes, file.content_type)}
         response = await client.post(SEPARATE_VOICE_URL, files=files, timeout=None)
 
-    return StreamingResponse(
-        io.BytesIO(response.content),
-        media_type="application/zip",
-        headers={"Content-Disposition": "attachment; filename=separated_audio.zip"},
-    )
+        # Parse the response JSON
+        response_data = response.json()
+
+        # Return the S3 URLs in the same format
+        return JSONResponse(
+            {
+                "vocals_url": response_data["vocals_url"],
+                "music_url": response_data["music_url"],
+                "expiration": response_data["expiration"],
+            }
+        )
