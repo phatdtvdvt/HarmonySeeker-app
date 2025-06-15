@@ -137,14 +137,18 @@
               :loading="isUploading"
             )
               | Upload Audio
+  ToastNotification
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { nextTick, ref } from 'vue'
 import WaveformPlayer from '@/components/WaveformPlayer/index.vue'
 import api from '@/plugins/axios'
 import JSZip from 'jszip'
+import ToastNotification from '@/components/Toast/index.vue'
 
+import { useToast } from '@/utils/toast'
+const { Toast } = useToast()
 // State Management
 const fileInput = ref<HTMLInputElement | null>(null)
 
@@ -165,7 +169,7 @@ const vocalsDuration = ref(0)
 const instrumentalDuration = ref(0)
 
 const MAX_FILE_SIZE_MB = 10
-const MAX_AUDIO_DURATION = 30 // seconds
+const MAX_AUDIO_DURATION = 60 // seconds
 
 
 // Event Handlers
@@ -179,9 +183,26 @@ const onFileChange = (e: Event) => {
   
   if (file) {
     if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-      alert('File is too large! Maximum allowed size is 10MB.')
+      Toast(
+      'error',
+      `File size is ${(file.size / (1024 * 1024)).toFixed(1)}MB. Maximum allowed size is ${MAX_FILE_SIZE_MB}MB.`,
+      'File Too Large'
+      )      
       return
     }
+    console.log('1')
+    console.log(originalDuration.value)
+    if(originalDuration.value > MAX_AUDIO_DURATION){
+      Toast(
+      'error',
+      `Audio is too long`,
+      'Maximum allowed duration is 30 seconds.'
+      )
+      console.log('vao roi')
+      return
+    }
+    console.log('2')
+
     isUploading.value = true
     originalAudioFile.value = file
     isUploading.value = false
@@ -190,19 +211,35 @@ const onFileChange = (e: Event) => {
 
 const handleOriginalReady = (duration: number) => {
   originalDuration.value = duration
-  
+  console.log(originalDuration.value)
   if (duration > MAX_AUDIO_DURATION) {
-    alert('Audio is too long! Maximum allowed duration is 30 seconds.')
-    // Reset file selection
+    Toast(
+      'error',
+      `Audio duration is ${Math.floor(duration)}s. Maximum allowed duration is ${MAX_AUDIO_DURATION}s.`,
+      'Audio Too Long'
+    )
+    // Reset file
     originalAudioFile.value = null
-    separationComplete.value = false
-    resetPlayingStates()
-    resetDurations()
+    originalDuration.value = 0
+    if (fileInput.value) {
+      fileInput.value.value = ''
+    }
+    return
   }
+  
+  // Chỉ toast thành công khi đã kiểm tra duration
+  Toast(
+    'success',
+    `Audio file uploaded successfully! Duration: ${Math.floor(duration)}s`,
+    'Upload Complete'
+  )
+
 }
 
 const handleVocalsReady = (duration: number) => {
   vocalsDuration.value = duration
+  
+  
 }
 
 const handleInstrumentalReady = (duration: number) => {

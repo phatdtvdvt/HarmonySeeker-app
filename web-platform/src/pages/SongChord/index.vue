@@ -104,11 +104,13 @@
             span.text-caption.text-grey-darken-1.mt-1.comic-font Supported formats: .mp3, .wav, .flac
             v-btn.upload-btn.mt-6(size="large" color="primary" @click="selectFile" prepend-icon="mdi-music-note")
               span.comic-font Upload Audio
+  ToastNotification
 </template>
   
 <script setup lang="ts">
 import { ref, nextTick, computed } from 'vue'
 import WaveformPlayer from '@/components/WaveformPlayer/index.vue'
+
 import api from '@/plugins/axios'
  
 const detectedKey = ref<string | null>('')
@@ -267,6 +269,10 @@ const chordSuggestions = {
     formula: "i–VI–VII–v"
   }
 }
+import ToastNotification from '@/components/Toast/index.vue'
+
+import { useToast } from '@/utils/toast'
+const { Toast } = useToast()
 
 const selectFile = () => {
   fileInput.value?.click()
@@ -303,12 +309,24 @@ const onFileChange = async (e: Event) => {
   
   if (file) {
     if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-      alert('File is too large! Maximum allowed size is 10MB.')
+      Toast(
+      'error',
+      `File size is ${(file.size / (1024 * 1024)).toFixed(1)}MB. Maximum allowed size is ${MAX_FILE_SIZE_MB}MB.`,
+      'File Too Large'
+      )
+      await nextTick()
+
+      console.log('aaaaaa')
       return
     }
     selectedFile.value = file
     waveReady.value = true
     isPlaying.value = false
+    Toast(
+        'success',
+        `Audio file "${file.name}" uploaded successfully!`,
+        'Upload Complete'
+    )
     await nextTick()
   }
 }
